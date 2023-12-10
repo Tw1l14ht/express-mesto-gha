@@ -5,13 +5,13 @@ module.exports.getUsers = (req, res) => {
   userSchema
     .find({})
     .then((users) => { res.send(users); })
-    .catch((err) => res.status(500).send({ message: `Ошибка по умолчанию: ${err.name}` }));
+    .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.getUserById = (req, res) => {
-  const { userID } = req.params;
+  const { userId } = req.params;
   userSchema
-    .findById(userID)
+    .findById(userId)
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
