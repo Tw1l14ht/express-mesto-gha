@@ -87,7 +87,7 @@ module.exports.removeLikes = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError' || err.name === 'ValidationError') {
         return res.status(400).send({
-          message: 'Переданы некорректные данные для снятия лайка',
+          message: 'Переданы некорректные данные для снятия лайка.',
         });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
