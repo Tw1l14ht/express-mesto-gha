@@ -1,17 +1,20 @@
+const validID = require('mongoose').Types.ObjectId;
 const cardSchema = require('../models/card');
 
 module.exports.getCards = (req, res) => {
   cardSchema
     .find({})
     .then((cards) => res.status(200).send(cards))
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: `Ошибка по умолчанию: ${err.name}` }));
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.removeCard = (req, res) => {
   const { cardId } = req.params;
-  console.log(cardId);
   cardSchema.findOneAndDelete(cardId)
     .then((card) => {
+      if (!validID.isValid(cardId)) {
+        return res.status(400).send({ message: 'Передан некорректный id' });
+      }
       if (!card) {
         return res.status(404).send({ message: 'Передан несуществующий _id карточки' });
       }
@@ -19,11 +22,11 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        res.status(404).send({
-          message: 'Передан несуществующий _id карточки.',
+        res.status(400).send({
+          message: 'Передан некорректный id',
         });
       } else {
-        res.status(500).send({ message: err.message });
+        res.status(500).send({ message: 'Ошибка по умолчанию' });
       }
     });
 };
