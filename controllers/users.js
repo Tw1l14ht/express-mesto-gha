@@ -2,16 +2,14 @@ const userSchema = require('../models/user');
 
 module.exports.getUsers = (req, res) => {
   console.log(req);
-  userSchema
-    .find({})
+  userSchema.find({})
     .then((users) => { res.send(users); })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.getUserById = (req, res) => {
   const { userId } = req.params;
-  userSchema
-    .findById(userId)
+  userSchema.findById(userId)
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
@@ -21,8 +19,7 @@ module.exports.getUserById = (req, res) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         return res
-          .status(400)
-          .send({ message: 'Переданы некорректные данные' });
+          .status(400).send({ message: 'Переданы некорректные данные' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
@@ -31,8 +28,7 @@ module.exports.getUserById = (req, res) => {
 module.exports.postUser = (req, res) => {
   const { name, about, avatar } = req.body;
   console.log(req.body);
-  userSchema
-    .create({ name, about, avatar })
+  userSchema.create({ name, about, avatar })
     .then((user) => res.status(201).send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
@@ -45,12 +41,11 @@ module.exports.postUser = (req, res) => {
 
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
-  userSchema
-    .findByIdAndUpdate(
-      req.user._id,
-      { avatar },
-      { new: true, runValidators: true },
-    )
+  userSchema.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true },
+  )
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
@@ -59,9 +54,7 @@ module.exports.updateAvatar = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res.status(400).send({
-          message: 'Переданы некорректные данные при обновлении профиля.',
-        });
+        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
@@ -69,12 +62,11 @@ module.exports.updateAvatar = (req, res) => {
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
-  userSchema
-    .findByIdAndUpdate(
-      req.user._id,
-      { name, about },
-      { new: true, runValidators: true },
-    )
+  userSchema.findByIdAndUpdate(
+    req.user._id,
+    { name, about },
+    { new: true, runValidators: true },
+  )
     .then((user) => {
       if (!user) {
         return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
@@ -83,9 +75,7 @@ module.exports.updateUser = (req, res) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res.status(400).send({
-          message: 'Переданы некорректные данные при обновлении профиля.',
-        });
+        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
