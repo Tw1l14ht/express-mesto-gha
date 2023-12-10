@@ -9,10 +9,10 @@ module.exports.getCards = (req, res) => {
 };
 
 module.exports.removeCard = (req, res) => {
-  const { cardId } = req.params;
-  cardSchema.findOneAndDelete(cardId)
+  const { cardID } = req.params;
+  cardSchema.findOneAndDelete(cardID)
     .then((card) => {
-      if (!validID.isValid(cardId)) {
+      if (!validID.isValid(cardID)) {
         return res.status(400).send({ message: 'Передан некорректный id' });
       }
       if (!card) {
@@ -51,7 +51,7 @@ module.exports.postCards = (req, res) => {
 module.exports.putLikes = (req, res) => {
   cardSchema
     .findByIdAndUpdate(
-      req.params.cardId,
+      req.params.cardID,
       { $addToSet: { likes: req.user._id } },
       { new: true },
     )
@@ -74,7 +74,7 @@ module.exports.putLikes = (req, res) => {
 module.exports.removeLikes = (req, res) => {
   cardSchema
     .findByIdAndUpdate(
-      req.params.cardId,
+      req.params.cardID,
       { $pull: { likes: req.user._id } },
       { new: true },
     )
