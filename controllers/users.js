@@ -5,7 +5,7 @@ module.exports.getUsers = (req, res) => {
   userSchema
     .find({})
     .then((users) => { res.send(users); })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => res.status(500).send({ message: `Ошибка по умолчанию: ${err.name}` }));
 };
 
 module.exports.getUserById = (req, res) => {
