@@ -12,14 +12,17 @@ module.exports.getUserById = (req, res) => {
   const { userId } = req.params;
   userSchema
     .findById(userId)
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      }
+      return res.send(user);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         return res
           .status(400)
           .send({ message: 'Переданы некорректные данные' });
-      } if (err.message === 'NotFound') {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
@@ -48,14 +51,17 @@ module.exports.updateAvatar = (req, res) => {
       { avatar },
       { new: true },
     )
-    .then((user) => res.status(200).send(user))
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      }
+      return res.status(200).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(400).send({
           message: 'Переданы некорректные данные при обновлении профиля.',
         });
-      } if (err.message === 'NotFound') {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
@@ -69,14 +75,17 @@ module.exports.updateUser = (req, res) => {
       { name, about },
       { new: true },
     )
-    .then((user) => res.status(200).send(user))
+    .then((user) => {
+      if (!user) {
+        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
+      }
+      return res.status(200).send(user);
+    })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
         return res.status(400).send({
           message: 'Переданы некорректные данные при обновлении профиля.',
         });
-      } if (err.message === 'NotFound') {
-        return res.status(404).send({ message: 'Пользователь по указанному _id не найден' });
       }
       return res.status(500).send({ message: 'Ошибка по умолчанию' });
     });
