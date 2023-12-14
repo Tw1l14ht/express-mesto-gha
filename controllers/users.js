@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const userSchema = require('../models/user');
 const NotFoundError = require('../stat_code_errors/NotFoundError');
 const BadRequestError = require('../stat_code_errors/BadRequestError');
-const ForbiddenError = require('../stat_code_errors/ForbiddenError');
+const ConflictError = require('../stat_code_errors/ConflictError');
+const AuthError = require('../stat_code_errors/AuthError');
 
 module.exports.getUsers = (req, res, next) => {
   console.log(req);
@@ -40,7 +41,7 @@ module.exports.postUser = (req, res, next) => {
       .then((user) => res.status(201).send(user))
       .catch((err) => {
         if (err.code === 11000) {
-          next(new ForbiddenError('Пользователь с таким email уже существует'));
+          next(new ConflictError('Пользователь с таким email уже существует'));
         } else if (err.name === 'ValidationError') {
           next(new BadRequestError('Некорректные данные'));
         } else next(err);
@@ -90,9 +91,12 @@ module.exports.updateUser = (req, res, next) => {
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return userSchema
+  userSchema
     .findUserByCredentials(email, password)
     .then((user) => {
+      if (!user) {
+        throw new AuthError('Пользователь не найден');
+      }
       const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
         expiresIn: '7d',
       });
