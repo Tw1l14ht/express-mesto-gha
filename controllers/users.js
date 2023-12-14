@@ -1,46 +1,54 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const userSchema = require('../models/user');
-const { statCode500, statCode400, statCode404 } = require('../utils/constans');
+const NotFoundError = require('../stat_code_errors/NotFoundError');
+const BadRequestError = require('../stat_code_errors/BadRequestError');
+const ForbiddenError = require('../stat_code_errors/ForbiddenError');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   console.log(req);
   userSchema.find({})
     .then((users) => { res.send(users); })
-    .catch((err) => res.status(statCode500).send({ message: `Ошибка по умолчанию: ${err.name}` }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
   userSchema.findById(userId)
     .then((user) => {
       if (!user) {
-        return res.status(statCode404).send({ message: 'Пользователь по указанному _id не найден' });
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
-          .status(statCode400).send({ message: 'Переданы некорректные данные' });
-      }
-      return res.status(statCode500).send({ message: `Ошибка по умолчанию: ${err.name}` });
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else next(err);
     });
 };
 
-module.exports.postUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.postUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
   console.log(req.body);
-  userSchema.create({ name, about, avatar })
-    .then((user) => res.status(201).send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(statCode400).send({ message: 'Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(statCode500).send({ message: `Ошибка по умолчанию: ${err.name}` });
-      }
-    });
+  bcrypt.hash(password, 10).then((hash) => {
+    userSchema.create({
+      name, about, avatar, email, password: hash,
+    })
+      .then((user) => res.status(201).send(user))
+      .catch((err) => {
+        if (err.code === 11000) {
+          next(new ForbiddenError('Пользователь с таким email уже существует'));
+        } else if (err.name === 'ValidationError') {
+          next(new BadRequestError('Некорректные данные'));
+        } else next(err);
+      });
+  });
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   userSchema.findByIdAndUpdate(
     req.user._id,
@@ -49,19 +57,18 @@ module.exports.updateAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(statCode404).send({ message: 'Пользователь по указанному _id не найден' });
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res.status(statCode400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
-      }
-      return res.status(statCode500).send({ message: `Ошибка по умолчанию: ${err.name}` });
+        next(new BadRequestError('Переданы некорректные данные при обновлении аватара.'));
+      } else next(err);
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   userSchema.findByIdAndUpdate(
     req.user._id,
@@ -70,14 +77,43 @@ module.exports.updateUser = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(statCode404).send({ message: 'Пользователь по указанному _id не найден' });
+        throw new NotFoundError('Пользователь по указанному _id не найден');
       }
       return res.send(user);
     })
     .catch((err) => {
       if (err.name === 'ValidationError' || err.name === 'CastError') {
-        return res.status(statCode400).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+        next(BadRequestError('Переданы некорректные данные при обновлении профиля.'));
+      } else next(err);
+    });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+  return userSchema
+    .findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'some-secret-key', {
+        expiresIn: '7d',
+      });
+      res.send({ token });
+    })
+    .catch(next);
+};
+
+module.exports.getMyUser = (req, res, next) => {
+  userSchema.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден');
       }
-      return res.status(statCode500).send({ message: `Ошибка по умолчанию: ${err.name}` });
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequestError('Переданы некорректные данные'));
+      } else if (err.message === 'NotFound') {
+        next(new NotFoundError('Пользователь не найден'));
+      } else next(err);
     });
 };
