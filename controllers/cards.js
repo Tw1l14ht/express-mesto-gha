@@ -11,7 +11,7 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.removeCard = (req, res, next) => {
   const { cardId } = req.params;
-  cardSchema.findOneAndDelete(cardId)
+  return cardSchema.findById(cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Пользователь не найден');
@@ -19,7 +19,7 @@ module.exports.removeCard = (req, res, next) => {
       if (!card.owner.equals(req.user._id)) {
         return next(new ForbiddenError('Вы не можете удалить чужую карточку'));
       }
-      return res.send(card);
+      return card.remove().then(() => res.send({ message: 'Карточка удалена' }));
     })
     .catch(next);
 };

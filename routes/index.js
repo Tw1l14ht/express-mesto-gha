@@ -5,6 +5,7 @@ const cardsRouter = require('./cards');
 const { postUser, login } = require('../controllers/users');
 const auth = require('../middlewares/auth');
 const { linkVerify } = require('../utils/regexFunc');
+const NotFoundError = require('../stat_code_errors/NotFoundError');
 
 router.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -26,8 +27,8 @@ router.post('/signin', celebrate({
 router.use('/users', auth, usersRouter);
 router.use('/cards', auth, cardsRouter);
 
-router.use('*', (req, res) => {
-  res.status(404).send({ message: 'Not Found' });
+router.use('*', (req, res, next) => {
+  next(new NotFoundError('Not Found'));
 });
 
 module.exports = router;
