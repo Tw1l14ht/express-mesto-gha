@@ -3,17 +3,11 @@ const mongoose = require('mongoose');
 const { errors } = require('celebrate');
 const bodyParser = require('body-parser');
 const router = require('./routes');
-const { postUser, login } = require('./controllers/users');
-const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(bodyParser.json());
-
-app.post('/signup', postUser);
-app.post('/signin', login);
-app.use(auth);
 
 app.use(router);
 
