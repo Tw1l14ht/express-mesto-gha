@@ -38,7 +38,9 @@ module.exports.postUser = (req, res, next) => {
     userSchema.create({
       name, about, avatar, email, password: hash,
     })
-      .then((user) => res.status(201).send(user))
+      .then(() => res.status(201).send({
+        name, about, avatar, email,
+      }))
       .catch((err) => {
         if (err.code === 11000) {
           next(new ConflictError('Пользователь с таким email уже существует'));
