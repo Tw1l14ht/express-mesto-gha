@@ -23,7 +23,7 @@ module.exports.removeCard = (req, res, next) => {
       cardSchema.findOneAndDelete(cardId)
         .then((carD) => res.send(carD));
     })
-    .catch((err) => res.send(err.message));
+    .catch(next);
 };
 
 module.exports.postCards = (req, res, next) => {
