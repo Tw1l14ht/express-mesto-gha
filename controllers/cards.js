@@ -1,7 +1,7 @@
 const cardSchema = require('../models/card');
 const BadRequestError = require('../stat_code_errors/BadRequestError');
-const ConflictError = require('../stat_code_errors/ConflictError');
 const NotFoundError = require('../stat_code_errors/NotFoundError');
+const ForbiddenError = require('../stat_code_errors/ForbiddenError');
 
 module.exports.getCards = (req, res, next) => {
   cardSchema.find({})
@@ -17,7 +17,7 @@ module.exports.removeCard = (req, res, next) => {
         throw new NotFoundError('Пользователь не найден');
       }
       if (!card.owner.equals(req.user._id)) {
-        return next(new ConflictError('Вы не можете удалить чужую карточку'));
+        return next(new ForbiddenError('Вы не можете удалить чужую карточку'));
       }
       return res.send(card);
     })
