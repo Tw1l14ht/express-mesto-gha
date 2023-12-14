@@ -11,7 +11,8 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.removeCard = (req, res, next) => {
   const { cardId } = req.params;
-  return cardSchema.findById(cardId)
+  cardSchema.findById(cardId)
+    // eslint-disable-next-line consistent-return
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Пользователь не найден');
@@ -19,9 +20,10 @@ module.exports.removeCard = (req, res, next) => {
       if (!card.owner.equals(req.user._id)) {
         return next(new ForbiddenError('Вы не можете удалить чужую карточку'));
       }
-      return card.remove().then(() => res.send({ message: 'Карточка удалена' }));
+      cardSchema.findOneAndDelete(cardId)
+        .then((carD) => res.send(carD));
     })
-    .catch(next);
+    .catch((err) => res.send(err.message));
 };
 
 module.exports.postCards = (req, res, next) => {

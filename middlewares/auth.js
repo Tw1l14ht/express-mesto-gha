@@ -5,7 +5,6 @@ const AuthError = require('../stat_code_errors/AuthError');
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
   let payload;
-  console.log(authorization);
   try {
     if (!authorization || !authorization.startsWith('Bearer ')) {
       throw new AuthError('Необходима авторизация');
@@ -13,7 +12,6 @@ module.exports = (req, res, next) => {
     const token = authorization.replace('Bearer ', '');
     payload = jwt.verify(token, 'some-secret-key');
   } catch (err) {
-    console.log(authorization);
     return next(err);
   }
   req.user = payload;
